@@ -14,6 +14,7 @@ void DutyCycleSensor::setup() {
   this->store_.last_level = this->pin_->digital_read();
   this->last_update_ = micros();
   this->store_.last_interrupt = micros();
+  this->store_.on_time = micros();
 
   this->pin_->attach_interrupt(DutyCycleSensorStore::gpio_intr, &this->store_, CHANGE);
 }
