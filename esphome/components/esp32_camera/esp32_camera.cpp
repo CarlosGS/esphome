@@ -124,6 +124,14 @@ void ESP32Camera::dump_config() {
   ESP_LOGCONFIG(TAG, "  Test Pattern: %s", YESNO(st.colorbar));
 }
 void ESP32Camera::loop() {
+  // check if we can return the image
+  if (this->can_return_image_()) {
+    // return image
+    auto *fbb = this->current_image_->get_raw_buffer();
+    //xQueueSend(this->framebuffer_return_queue_, &fb, portMAX_DELAY);
+    esp_camera_fb_return(fbb);
+    this->current_image_.reset();
+  }
   // Check if we should fetch a new image
   if (!this->has_requested_image_())
     return;
@@ -135,15 +143,7 @@ void ESP32Camera::loop() {
   if (now - this->last_update_ <= this->max_update_interval_)
     return;
 
-  // check if we can return the image
-  //if (this->can_return_image_()) {
-    // return image
-    auto *fbb = this->current_image_->get_raw_buffer();
-    //xQueueSend(this->framebuffer_return_queue_, &fb, portMAX_DELAY);
-    esp_camera_fb_return(fbb);
-    this->current_image_.reset();
-  //} else
-  //  return;  // Wait until we can reuse the buffer
+
   // request new image
   /*camera_fb_t *fb;
   if (xQueueReceive(this->framebuffer_get_queue_, &fb, 0L) != pdTRUE) {
