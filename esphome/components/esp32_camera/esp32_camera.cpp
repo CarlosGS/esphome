@@ -536,8 +536,8 @@ int day_switch_value=140;
     //s->set_reg(s,0x91,0xff,0x67);//really weird stuff in the last 4 bits, can also crash the camera           
 
     //no sharpening
-    s->set_reg(s,0x92,0xff,0x1);
-    s->set_reg(s,0x93,0xff,0x0);  
+    //s->set_reg(s,0x92,0xff,0x1); // CGS: Yes sharpening.
+    //s->set_reg(s,0x93,0xff,0x0);  
   
    if(fb)esp_camera_fb_return(fb);
 
