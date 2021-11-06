@@ -159,8 +159,8 @@ void ESP32Camera::loop() {
   }*/
   
   
-esp_camera_deinit();
-esp_camera_init(&global_esp32_camera->config_);
+//esp_camera_deinit();
+//esp_camera_init(&global_esp32_camera->config_);
     // Code from: https://github.com/raduprv/esp32-cam_ov2640-timelapse/blob/main/ov2640_timelapse_github.ino 
     // Work in progress, TO-DO: cleanup and reference author (@raduprv) and license, etc
 camera_fb_t * fb = NULL;
@@ -554,10 +554,10 @@ int day_switch_value=140;
   }
 
 //since we got the frame buffer, we reset the sensor and put it to sleep while saving the file
-    s->set_reg(s,0xff,0xff,0x01);//banksel
+    /*s->set_reg(s,0xff,0xff,0x01);//banksel
     s->set_reg(s,0x12,0xff,0x80);//reset (we do this to clear the sensor registries, it seems to get more consistent images this way)
     delay(1);
-    s->set_reg(s,0x09,0x10,0x10);//stand by
+    s->set_reg(s,0x09,0x10,0x10);//stand by*/
   
   if(!fb) return; // Exit and retry at next loop
   
