@@ -15,21 +15,21 @@ void ESP32Camera::setup() {
   global_esp32_camera = this;
 
   this->last_update_ = millis();
-  esp_err_t err = esp_camera_init(&this->config_);
+  /*esp_err_t err = esp_camera_init(&this->config_);
   if (err != ESP_OK) {
     ESP_LOGE(TAG, "esp_camera_init failed: %s", esp_err_to_name(err));
     this->init_error_ = err;
     this->mark_failed();
     return;
-  }
+  }*/
 
-  sensor_t *s = esp_camera_sensor_get();
+  /*sensor_t *s = esp_camera_sensor_get();
   s->set_vflip(s, this->vertical_flip_);
   s->set_hmirror(s, this->horizontal_mirror_);
   s->set_contrast(s, this->contrast_);
   s->set_brightness(s, this->brightness_);
   s->set_saturation(s, this->saturation_);
-  s->set_colorbar(s, this->test_pattern_);
+  s->set_colorbar(s, this->test_pattern_);*/
   this->framebuffer_get_queue_ = xQueueCreate(1, sizeof(camera_fb_t *));
   this->framebuffer_return_queue_ = xQueueCreate(1, sizeof(camera_fb_t *));
   xTaskCreatePinnedToCore(&ESP32Camera::framebuffer_task,
@@ -165,7 +165,7 @@ void ESP32Camera::loop() {
 }
 void ESP32Camera::framebuffer_task(void *pv) {
   while (true) {
- 
+esp_camera_init(&this->config_);
     // Code from: https://github.com/raduprv/esp32-cam_ov2640-timelapse/blob/main/ov2640_timelapse_github.ino 
     // Work in progress, TO-DO: cleanup and reference author (@raduprv) and license, etc
 camera_fb_t * fb = NULL;
