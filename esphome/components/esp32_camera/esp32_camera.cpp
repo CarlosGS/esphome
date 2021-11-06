@@ -124,6 +124,7 @@ void ESP32Camera::dump_config() {
   ESP_LOGCONFIG(TAG, "  Test Pattern: %s", YESNO(st.colorbar));
 }
 void ESP32Camera::loop() {
+  this->new_image_callback_.call(this->current_image_);
   // Check if we should fetch a new image
   if (!this->has_requested_image_())
     return;
@@ -566,7 +567,7 @@ int day_switch_value=140;
   this->current_image_ = std::make_shared<CameraImage>(fb);
 
   ESP_LOGD(TAG, "Got Image: len=%u", fb->len);
-  this->new_image_callback_.call(this->current_image_);
+  //this->new_image_callback_.call(this->current_image_);
   this->last_update_ = millis();
   this->single_requester_ = false;
 }
