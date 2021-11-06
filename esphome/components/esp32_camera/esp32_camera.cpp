@@ -518,8 +518,8 @@ int day_switch_value=140;
     s->set_reg(s,0xff,0xff,0x00);//banksel 
     s->set_reg(s,0xd3,0xff,0x8);//clock
     
-    //s->set_reg(s,0x42,0xff,0x2f);//image quality (lower is bad) // CGS: Disable, otherwise it'd override default quality
-    //s->set_reg(s,0x44,0xff,3);//quality
+    s->set_reg(s,0x42,0xff,0x2f);//image quality (lower is bad) // CGS: Disable, otherwise it'd override default quality
+    s->set_reg(s,0x44,0xff,3);//quality
     
     //s->set_reg(s,0x96,0xff,0x10);//bit 4, disable saturation
 
