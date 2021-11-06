@@ -124,6 +124,13 @@ void ESP32Camera::dump_config() {
   ESP_LOGCONFIG(TAG, "  Test Pattern: %s", YESNO(st.colorbar));
 }
 void ESP32Camera::loop() {
+  // Check if we should fetch a new image
+  if (!this->has_requested_image_())
+    return;
+  const uint32_t now = millis();
+  if (now - this->last_update_ <= this->max_update_interval_)
+    return;
+
   // check if we can return the image
   if (this->can_return_image_()) {
     // return image
@@ -132,17 +139,10 @@ void ESP32Camera::loop() {
     esp_camera_fb_return(fbb);
     this->current_image_.reset();
   }
-  // Check if we should fetch a new image
-  if (!this->has_requested_image_())
-    return;
   if (this->current_image_.use_count() > 1) {
     // image is still in use
     return;
   }
-  const uint32_t now = millis();
-  if (now - this->last_update_ <= this->max_update_interval_)
-    return;
-
 
   // request new image
   /*camera_fb_t *fb;
