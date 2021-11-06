@@ -165,7 +165,7 @@ void ESP32Camera::loop() {
 }
 void ESP32Camera::framebuffer_task(void *pv) {
   while (true) {
-esp_camera_init(&this->config_);
+esp_camera_init(&global_esp32_camera->config_);
     // Code from: https://github.com/raduprv/esp32-cam_ov2640-timelapse/blob/main/ov2640_timelapse_github.ino 
     // Work in progress, TO-DO: cleanup and reference author (@raduprv) and license, etc
 camera_fb_t * fb = NULL;
