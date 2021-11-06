@@ -124,15 +124,6 @@ void ESP32Camera::dump_config() {
   ESP_LOGCONFIG(TAG, "  Test Pattern: %s", YESNO(st.colorbar));
 }
 void ESP32Camera::loop() {
-  // check if we can return the image
-  if (this->can_return_image_()) {
-    // return image
-    auto *fb = this->current_image_->get_raw_buffer();
-    //xQueueSend(this->framebuffer_return_queue_, &fb, portMAX_DELAY);
-    esp_camera_fb_return(fb);
-    this->current_image_.reset();
-  }
-
   // Check if we should fetch a new image
   if (!this->has_requested_image_())
     return;
@@ -144,6 +135,15 @@ void ESP32Camera::loop() {
   if (now - this->last_update_ <= this->max_update_interval_)
     return;
 
+  // check if we can return the image
+  //if (this->can_return_image_()) {
+    // return image
+    auto *fbb = this->current_image_->get_raw_buffer();
+    //xQueueSend(this->framebuffer_return_queue_, &fb, portMAX_DELAY);
+    esp_camera_fb_return(fbb);
+    this->current_image_.reset();
+  //} else
+  //  return;  // Wait until we can reuse the buffer
   // request new image
   /*camera_fb_t *fb;
   if (xQueueReceive(this->framebuffer_get_queue_, &fb, 0L) != pdTRUE) {
@@ -550,6 +550,7 @@ int day_switch_value=140;
 
     retries++;
     if(retries>4)break;
+    ESP_LOGD(TAG, "Retrying fetch image");
   }
 
 //since we got the frame buffer, we reset the sensor and put it to sleep while saving the file
@@ -558,13 +559,15 @@ int day_switch_value=140;
     delay(1);
     s->set_reg(s,0x09,0x10,0x10);//stand by
   
+  if(!fb) return; // Exit and retry at next loop
+  
   //camera_fb_t *fb = esp_camera_fb_get();
   
   this->current_image_ = std::make_shared<CameraImage>(fb);
 
   ESP_LOGD(TAG, "Got Image: len=%u", fb->len);
   this->new_image_callback_.call(this->current_image_);
-  this->last_update_ = now;
+  this->last_update_ = millis();
   this->single_requester_ = false;
 }
 void ESP32Camera::framebuffer_task(void *pv) {
