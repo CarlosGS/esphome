@@ -124,10 +124,13 @@ void ESP32Camera::dump_config() {
   ESP_LOGCONFIG(TAG, "  Test Pattern: %s", YESNO(st.colorbar));
 }
 void ESP32Camera::loop() {
-  if(this->current_image_) this->new_image_callback_.call(this->current_image_);
   // Check if we should fetch a new image
   if (!this->has_requested_image_())
     return;
+  
+  // For faster view, now send the latest image
+  if(this->current_image_) this->new_image_callback_.call(this->current_image_);
+  
   const uint32_t now = millis();
   if (now - this->last_update_ <= this->max_update_interval_)
     return;
