@@ -195,7 +195,7 @@ int day_switch_value=140;
     
    s->set_reg(s,0xff,0xff,0x01);//banksel    
 
-   light=s->get_reg(s,0x2f,0xff);
+   //light=s->get_reg(s,0x2f,0xff); // CGS: Disable to test full night
    //Serial.print("First light is ");
    //Serial.println(light);
    //Serial.print("Old 0x0 value is");   
