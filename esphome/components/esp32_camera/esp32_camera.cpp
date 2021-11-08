@@ -534,6 +534,8 @@ void ESP32Camera::loop() {
     return;
   }*/
   
+  sensor_t *s = esp_camera_sensor_get();
+  s->set_reg(s,0x43,0xff,0x40); // Magic to give us the frame faster
   
 camera_fb_t * fb = NULL;
 
@@ -560,7 +562,10 @@ camera_fb_t * fb = NULL;
     delay(1);
     s->set_reg(s,0x09,0x10,0x10);//stand by*/
   
-  if(!fb) return; // Exit and retry at next loop
+  if(!fb) {
+    ESP_LOGD(TAG, "Bad capture (NULL)");
+    return; // Exit and retry at next loop
+  }
   
   //camera_fb_t *fb = esp_camera_fb_get();
   
