@@ -320,9 +320,9 @@ int day_switch_value=140;
 
     if(light==0)
     {
-      s->set_reg(s,0x47,0xff,0x40);//Frame Length Adjustment MSBs
-      s->set_reg(s,0x2a,0xf0,0xf0);//line adjust MSB
-      s->set_reg(s,0x2b,0xff,0xff);//line adjust
+      //s->set_reg(s,0x47,0xff,0x40);//Frame Length Adjustment MSBs  // CGS: remove since removing intermediate capture
+      //s->set_reg(s,0x2a,0xf0,0xf0);//line adjust MSB
+      //s->set_reg(s,0x2b,0xff,0xff);//line adjust
     }
     else if(light==1)
     {
