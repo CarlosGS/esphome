@@ -534,8 +534,8 @@ void ESP32Camera::loop() {
     return;
   }*/
   
-  //sensor_t *s = esp_camera_sensor_get();
-  //s->set_reg(s,0x43,0xff,0x40); // Magic to give us the frame faster
+  sensor_t *s = esp_camera_sensor_get();
+  s->set_reg(s,0x43,0xff,0x40); // Magic to give us the frame faster
   
 camera_fb_t * fb = esp_camera_fb_get();
 
