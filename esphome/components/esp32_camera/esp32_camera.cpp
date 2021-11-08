@@ -30,6 +30,51 @@ void ESP32Camera::setup() {
   s->set_brightness(s, this->brightness_);
   s->set_saturation(s, this->saturation_);
   s->set_colorbar(s, this->test_pattern_);
+  
+  camera_fb_t * fb = NULL;
+  s->set_whitebal(s, 1);       // 0 = disable , 1 = enable
+  s->set_awb_gain(s, 1);       // 0 = disable , 1 = enable
+  s->set_wb_mode(s, 2);        // 0 to 4 - if awb_gain enabled (0 - Auto, 1 - Sunny, 2 - Cloudy, 3 - Office, 4 - Home)
+//  s->set_exposure_ctrl(s, 1);  // 0 = disable , 1 = enable
+ // s->set_aec2(s, 0);           // 0 = disable , 1 = enable
+  //s->set_ae_level(s, 2);       // -2 to 2
+  //s->set_aec_value(s, 1200);    // 0 to 1200
+  s->set_gain_ctrl(s, 0);      // 0 = disable , 1 = enable
+  s->set_agc_gain(s, 0);       // 0 to 30
+  s->set_gainceiling(s, (gainceiling_t)6);  // 0 to 6
+  s->set_bpc(s, 1);            // 0 = disable , 1 = enable
+  s->set_wpc(s, 1);            // 0 = disable , 1 = enable
+  s->set_raw_gma(s, 1);        // 0 = disable , 1 = enable
+  s->set_lenc(s, 0);           // 0 = disable , 1 = enable
+  s->set_hmirror(s, 0);        // 0 = disable , 1 = enable
+  s->set_vflip(s, 0);          // 0 = disable , 1 = enable
+  s->set_dcw(s, 0);            // 0 = disable , 1 = enable
+  s->set_colorbar(s, 0);       // 0 = disable , 1 = enable   
+  
+  s->set_reg(s,0xff,0xff,0x01);//banksel    
+  
+      //here we are in night mode
+      if(light<45)s->set_reg(s,0x11,0xff,1);//frame rate (1 means longer exposure)
+      s->set_reg(s,0x13,0xff,0);//manual everything
+      s->set_reg(s,0x0c,0x6,0x8);//manual banding
+           
+      s->set_reg(s,0x45,0x3f,0x3f);//really long exposure (but it doesn't really work)
+  
+  
+  fb = esp_camera_fb_get();
+
+      s->set_reg(s,0x47,0xff,0x40);//Frame Length Adjustment MSBs
+      s->set_reg(s,0x2a,0xf0,0xf0);//line adjust MSB
+      s->set_reg(s,0x2b,0xff,0xff);//line adjust
+  
+  s->set_reg(s,0x43,0xff,0x40);//magic value to give us the frame faster (bit 6 must be 1)
+  
+    s->set_reg(s,0xff,0xff,0x00);//banksel 
+    s->set_reg(s,0xd3,0xff,0x8);//clock
+  
+  if(fb) esp_camera_fb_return(fb);
+  
+  
   this->framebuffer_get_queue_ = xQueueCreate(1, sizeof(camera_fb_t *));
   this->framebuffer_return_queue_ = xQueueCreate(1, sizeof(camera_fb_t *));
   xTaskCreatePinnedToCore(&ESP32Camera::framebuffer_task,
