@@ -54,7 +54,7 @@ void ESP32Camera::setup() {
   s->set_reg(s,0xff,0xff,0x01);//banksel    
   
       //here we are in night mode
-      if(light<45)s->set_reg(s,0x11,0xff,1);//frame rate (1 means longer exposure)
+      s->set_reg(s,0x11,0xff,1);//frame rate (1 means longer exposure)
       s->set_reg(s,0x13,0xff,0);//manual everything
       s->set_reg(s,0x0c,0x6,0x8);//manual banding
            
