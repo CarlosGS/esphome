@@ -312,6 +312,10 @@ async def to_code(config):
         # Increase freertos tick speed from 100Hz to 1kHz so that delay() resolution is 1ms
         add_idf_sdkconfig_option("CONFIG_FREERTOS_HZ", 1000)
 
+        add_idf_sdkconfig_option("CONFIG_PM_ENABLE", True)
+        add_idf_sdkconfig_option("CONFIG_PM_DFS_INIT_AUTO", True)
+        add_idf_sdkconfig_option("CONFIG_FREERTOS_USE_TICKLESS_IDLE", True)
+
         cg.add_platformio_option("board_build.partitions", "partitions.csv")
 
         for name, value in conf[CONF_SDKCONFIG_OPTIONS].items():
