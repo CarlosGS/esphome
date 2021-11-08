@@ -40,136 +40,12 @@ void ESP32Camera::setup() {
                           nullptr,             // handle
                           1                    // core
   );*/
-}
-void ESP32Camera::dump_config() {
-  auto conf = this->config_;
-  ESP_LOGCONFIG(TAG, "ESP32 Camera:");
-  ESP_LOGCONFIG(TAG, "  Name: %s", this->name_.c_str());
-#ifdef USE_ARDUINO
-  ESP_LOGCONFIG(TAG, "  Board Has PSRAM: %s", YESNO(psramFound()));
-#endif  // USE_ARDUINO
-  ESP_LOGCONFIG(TAG, "  Data Pins: D0:%d D1:%d D2:%d D3:%d D4:%d D5:%d D6:%d D7:%d", conf.pin_d0, conf.pin_d1,
-                conf.pin_d2, conf.pin_d3, conf.pin_d4, conf.pin_d5, conf.pin_d6, conf.pin_d7);
-  ESP_LOGCONFIG(TAG, "  VSYNC Pin: %d", conf.pin_vsync);
-  ESP_LOGCONFIG(TAG, "  HREF Pin: %d", conf.pin_href);
-  ESP_LOGCONFIG(TAG, "  Pixel Clock Pin: %d", conf.pin_pclk);
-  ESP_LOGCONFIG(TAG, "  External Clock: Pin:%d Frequency:%u", conf.pin_xclk, conf.xclk_freq_hz);
-  ESP_LOGCONFIG(TAG, "  I2C Pins: SDA:%d SCL:%d", conf.pin_sscb_sda, conf.pin_sscb_scl);
-  ESP_LOGCONFIG(TAG, "  Reset Pin: %d", conf.pin_reset);
-  switch (this->config_.frame_size) {
-    case FRAMESIZE_QQVGA:
-      ESP_LOGCONFIG(TAG, "  Resolution: 160x120 (QQVGA)");
-      break;
-    case FRAMESIZE_QCIF:
-      ESP_LOGCONFIG(TAG, "  Resolution: 176x155 (QCIF)");
-      break;
-    case FRAMESIZE_HQVGA:
-      ESP_LOGCONFIG(TAG, "  Resolution: 240x176 (HQVGA)");
-      break;
-    case FRAMESIZE_QVGA:
-      ESP_LOGCONFIG(TAG, "  Resolution: 320x240 (QVGA)");
-      break;
-    case FRAMESIZE_CIF:
-      ESP_LOGCONFIG(TAG, "  Resolution: 400x296 (CIF)");
-      break;
-    case FRAMESIZE_VGA:
-      ESP_LOGCONFIG(TAG, "  Resolution: 640x480 (VGA)");
-      break;
-    case FRAMESIZE_SVGA:
-      ESP_LOGCONFIG(TAG, "  Resolution: 800x600 (SVGA)");
-      break;
-    case FRAMESIZE_XGA:
-      ESP_LOGCONFIG(TAG, "  Resolution: 1024x768 (XGA)");
-      break;
-    case FRAMESIZE_SXGA:
-      ESP_LOGCONFIG(TAG, "  Resolution: 1280x1024 (SXGA)");
-      break;
-    case FRAMESIZE_UXGA:
-      ESP_LOGCONFIG(TAG, "  Resolution: 1600x1200 (UXGA)");
-      break;
-    default:
-      break;
-  }
-
-  if (this->is_failed()) {
-    ESP_LOGE(TAG, "  Setup Failed: %s", esp_err_to_name(this->init_error_));
-    return;
-  }
-
-  sensor_t *s = esp_camera_sensor_get();
-  auto st = s->status;
-  ESP_LOGCONFIG(TAG, "  JPEG Quality: %u", st.quality);
-  // ESP_LOGCONFIG(TAG, "  Framebuffer Count: %u", conf.fb_count);
-  ESP_LOGCONFIG(TAG, "  Contrast: %d", st.contrast);
-  ESP_LOGCONFIG(TAG, "  Brightness: %d", st.brightness);
-  ESP_LOGCONFIG(TAG, "  Saturation: %d", st.saturation);
-  ESP_LOGCONFIG(TAG, "  Vertical Flip: %s", ONOFF(st.vflip));
-  ESP_LOGCONFIG(TAG, "  Horizontal Mirror: %s", ONOFF(st.hmirror));
-  // ESP_LOGCONFIG(TAG, "  Special Effect: %u", st.special_effect);
-  // ESP_LOGCONFIG(TAG, "  White Balance Mode: %u", st.wb_mode);
-  // ESP_LOGCONFIG(TAG, "  Auto White Balance: %u", st.awb);
-  // ESP_LOGCONFIG(TAG, "  Auto White Balance Gain: %u", st.awb_gain);
-  // ESP_LOGCONFIG(TAG, "  Auto Exposure Control: %u", st.aec);
-  // ESP_LOGCONFIG(TAG, "  Auto Exposure Control 2: %u", st.aec2);
-  // ESP_LOGCONFIG(TAG, "  Auto Exposure Level: %d", st.ae_level);
-  // ESP_LOGCONFIG(TAG, "  Auto Exposure Value: %u", st.aec_value);
-  // ESP_LOGCONFIG(TAG, "  AGC: %u", st.agc);
-  // ESP_LOGCONFIG(TAG, "  AGC Gain: %u", st.agc_gain);
-  // ESP_LOGCONFIG(TAG, "  Gain Ceiling: %u", st.gainceiling);
-  // ESP_LOGCONFIG(TAG, "  BPC: %u", st.bpc);
-  // ESP_LOGCONFIG(TAG, "  WPC: %u", st.wpc);
-  // ESP_LOGCONFIG(TAG, "  RAW_GMA: %u", st.raw_gma);
-  // ESP_LOGCONFIG(TAG, "  Lens Correction: %u", st.lenc);
-  // ESP_LOGCONFIG(TAG, "  DCW: %u", st.dcw);
-  ESP_LOGCONFIG(TAG, "  Test Pattern: %s", YESNO(st.colorbar));
-}
-void ESP32Camera::loop() {
-  // check if we can return the image
-  if (this->can_return_image_()) {
-    // return image
-    auto *fbb = this->current_image_->get_raw_buffer();
-    //xQueueSend(this->framebuffer_return_queue_, &fb, portMAX_DELAY);
-    esp_camera_fb_return(fbb);
-    this->current_image_.reset();
-  }
-  
-  // Check if we should fetch a new image
-  if (!this->has_requested_image_())
-    return;
-  
-  // For faster view, now send the latest image
-  //if(this->current_image_) this->new_image_callback_.call(this->current_image_);
-  
-  const uint32_t now = millis();
-  if (now - this->last_update_ <= this->max_update_interval_)
-    return;
-  
-  if (this->current_image_.use_count() > 1) {
-    // image is still in use
-    return;
-  }
-
-  // request new image
-  /*camera_fb_t *fb;
-  if (xQueueReceive(this->framebuffer_get_queue_, &fb, 0L) != pdTRUE) {
-    // no frame ready
-    ESP_LOGVV(TAG, "No frame ready");
-    return;
-  }
-
-  if (fb == nullptr) {
-    ESP_LOGW(TAG, "Got invalid frame from camera!");
-    xQueueSend(this->framebuffer_return_queue_, &fb, portMAX_DELAY);
-    return;
-  }*/
-  
-  
 //esp_camera_deinit();
 //esp_camera_init(&global_esp32_camera->config_);
     // Code from: https://github.com/raduprv/esp32-cam_ov2640-timelapse/blob/main/ov2640_timelapse_github.ino 
     // Work in progress, TO-DO: cleanup and reference author (@raduprv) and license, etc
 camera_fb_t * fb = NULL;
-sensor_t * s = esp_camera_sensor_get();
+//sensor_t * s = esp_camera_sensor_get();
 int light=0;
 int day_switch_value=140;
 
@@ -316,13 +192,13 @@ int day_switch_value=140;
     s->set_reg(s,0x43,0xff,0x11);//11 is the default value     
     }
 
-    //fb = esp_camera_fb_get(); // CGS: remove redundant capture. not needed if camera is kept turned on
+    fb = esp_camera_fb_get(); // CGS: remove redundant capture. not needed if camera is kept turned on
 
     if(light==0)
     {
-      //s->set_reg(s,0x47,0xff,0x40);//Frame Length Adjustment MSBs  // CGS: remove since removing intermediate capture
-      //s->set_reg(s,0x2a,0xf0,0xf0);//line adjust MSB
-      //s->set_reg(s,0x2b,0xff,0xff);//line adjust
+      s->set_reg(s,0x47,0xff,0x40);//Frame Length Adjustment MSBs  // CGS: remove since removing intermediate capture
+      s->set_reg(s,0x2a,0xf0,0xf0);//line adjust MSB
+      s->set_reg(s,0x2b,0xff,0xff);//line adjust
     }
     else if(light==1)
     {
@@ -534,7 +410,132 @@ int day_switch_value=140;
     //s->set_reg(s,0x92,0xff,0x1); // CGS: Yes sharpening.
     //s->set_reg(s,0x93,0xff,0x0);  
   
-   //if(fb) esp_camera_fb_return(fb); // CGS: Remove as the capture above is also removed
+   if(fb) esp_camera_fb_return(fb); // CGS: Remove as the capture above is also removed
+}
+void ESP32Camera::dump_config() {
+  auto conf = this->config_;
+  ESP_LOGCONFIG(TAG, "ESP32 Camera:");
+  ESP_LOGCONFIG(TAG, "  Name: %s", this->name_.c_str());
+#ifdef USE_ARDUINO
+  ESP_LOGCONFIG(TAG, "  Board Has PSRAM: %s", YESNO(psramFound()));
+#endif  // USE_ARDUINO
+  ESP_LOGCONFIG(TAG, "  Data Pins: D0:%d D1:%d D2:%d D3:%d D4:%d D5:%d D6:%d D7:%d", conf.pin_d0, conf.pin_d1,
+                conf.pin_d2, conf.pin_d3, conf.pin_d4, conf.pin_d5, conf.pin_d6, conf.pin_d7);
+  ESP_LOGCONFIG(TAG, "  VSYNC Pin: %d", conf.pin_vsync);
+  ESP_LOGCONFIG(TAG, "  HREF Pin: %d", conf.pin_href);
+  ESP_LOGCONFIG(TAG, "  Pixel Clock Pin: %d", conf.pin_pclk);
+  ESP_LOGCONFIG(TAG, "  External Clock: Pin:%d Frequency:%u", conf.pin_xclk, conf.xclk_freq_hz);
+  ESP_LOGCONFIG(TAG, "  I2C Pins: SDA:%d SCL:%d", conf.pin_sscb_sda, conf.pin_sscb_scl);
+  ESP_LOGCONFIG(TAG, "  Reset Pin: %d", conf.pin_reset);
+  switch (this->config_.frame_size) {
+    case FRAMESIZE_QQVGA:
+      ESP_LOGCONFIG(TAG, "  Resolution: 160x120 (QQVGA)");
+      break;
+    case FRAMESIZE_QCIF:
+      ESP_LOGCONFIG(TAG, "  Resolution: 176x155 (QCIF)");
+      break;
+    case FRAMESIZE_HQVGA:
+      ESP_LOGCONFIG(TAG, "  Resolution: 240x176 (HQVGA)");
+      break;
+    case FRAMESIZE_QVGA:
+      ESP_LOGCONFIG(TAG, "  Resolution: 320x240 (QVGA)");
+      break;
+    case FRAMESIZE_CIF:
+      ESP_LOGCONFIG(TAG, "  Resolution: 400x296 (CIF)");
+      break;
+    case FRAMESIZE_VGA:
+      ESP_LOGCONFIG(TAG, "  Resolution: 640x480 (VGA)");
+      break;
+    case FRAMESIZE_SVGA:
+      ESP_LOGCONFIG(TAG, "  Resolution: 800x600 (SVGA)");
+      break;
+    case FRAMESIZE_XGA:
+      ESP_LOGCONFIG(TAG, "  Resolution: 1024x768 (XGA)");
+      break;
+    case FRAMESIZE_SXGA:
+      ESP_LOGCONFIG(TAG, "  Resolution: 1280x1024 (SXGA)");
+      break;
+    case FRAMESIZE_UXGA:
+      ESP_LOGCONFIG(TAG, "  Resolution: 1600x1200 (UXGA)");
+      break;
+    default:
+      break;
+  }
+
+  if (this->is_failed()) {
+    ESP_LOGE(TAG, "  Setup Failed: %s", esp_err_to_name(this->init_error_));
+    return;
+  }
+
+  sensor_t *s = esp_camera_sensor_get();
+  auto st = s->status;
+  ESP_LOGCONFIG(TAG, "  JPEG Quality: %u", st.quality);
+  // ESP_LOGCONFIG(TAG, "  Framebuffer Count: %u", conf.fb_count);
+  ESP_LOGCONFIG(TAG, "  Contrast: %d", st.contrast);
+  ESP_LOGCONFIG(TAG, "  Brightness: %d", st.brightness);
+  ESP_LOGCONFIG(TAG, "  Saturation: %d", st.saturation);
+  ESP_LOGCONFIG(TAG, "  Vertical Flip: %s", ONOFF(st.vflip));
+  ESP_LOGCONFIG(TAG, "  Horizontal Mirror: %s", ONOFF(st.hmirror));
+  // ESP_LOGCONFIG(TAG, "  Special Effect: %u", st.special_effect);
+  // ESP_LOGCONFIG(TAG, "  White Balance Mode: %u", st.wb_mode);
+  // ESP_LOGCONFIG(TAG, "  Auto White Balance: %u", st.awb);
+  // ESP_LOGCONFIG(TAG, "  Auto White Balance Gain: %u", st.awb_gain);
+  // ESP_LOGCONFIG(TAG, "  Auto Exposure Control: %u", st.aec);
+  // ESP_LOGCONFIG(TAG, "  Auto Exposure Control 2: %u", st.aec2);
+  // ESP_LOGCONFIG(TAG, "  Auto Exposure Level: %d", st.ae_level);
+  // ESP_LOGCONFIG(TAG, "  Auto Exposure Value: %u", st.aec_value);
+  // ESP_LOGCONFIG(TAG, "  AGC: %u", st.agc);
+  // ESP_LOGCONFIG(TAG, "  AGC Gain: %u", st.agc_gain);
+  // ESP_LOGCONFIG(TAG, "  Gain Ceiling: %u", st.gainceiling);
+  // ESP_LOGCONFIG(TAG, "  BPC: %u", st.bpc);
+  // ESP_LOGCONFIG(TAG, "  WPC: %u", st.wpc);
+  // ESP_LOGCONFIG(TAG, "  RAW_GMA: %u", st.raw_gma);
+  // ESP_LOGCONFIG(TAG, "  Lens Correction: %u", st.lenc);
+  // ESP_LOGCONFIG(TAG, "  DCW: %u", st.dcw);
+  ESP_LOGCONFIG(TAG, "  Test Pattern: %s", YESNO(st.colorbar));
+}
+void ESP32Camera::loop() {
+  // check if we can return the image
+  if (this->can_return_image_()) {
+    // return image
+    auto *fbb = this->current_image_->get_raw_buffer();
+    //xQueueSend(this->framebuffer_return_queue_, &fb, portMAX_DELAY);
+    esp_camera_fb_return(fbb);
+    this->current_image_.reset();
+  }
+  
+  // Check if we should fetch a new image
+  if (!this->has_requested_image_())
+    return;
+  
+  // For faster view, now send the latest image
+  //if(this->current_image_) this->new_image_callback_.call(this->current_image_);
+  
+  const uint32_t now = millis();
+  if (now - this->last_update_ <= this->max_update_interval_)
+    return;
+  
+  if (this->current_image_.use_count() > 1) {
+    // image is still in use
+    return;
+  }
+
+  // request new image
+  /*camera_fb_t *fb;
+  if (xQueueReceive(this->framebuffer_get_queue_, &fb, 0L) != pdTRUE) {
+    // no frame ready
+    ESP_LOGVV(TAG, "No frame ready");
+    return;
+  }
+
+  if (fb == nullptr) {
+    ESP_LOGW(TAG, "Got invalid frame from camera!");
+    xQueueSend(this->framebuffer_return_queue_, &fb, portMAX_DELAY);
+    return;
+  }*/
+  
+  
+camera_fb_t * fb = NULL;
 
   fb = esp_camera_fb_get();
 
