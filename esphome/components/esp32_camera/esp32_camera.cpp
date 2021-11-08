@@ -315,13 +315,8 @@ int day_switch_value=140;
     s->set_reg(s,0x11,0xff,0x0);//frame rate
     s->set_reg(s,0x43,0xff,0x11);//11 is the default value     
     }
-    
-   //Serial.println("Getting first frame at");
-   //Serial.println(millis());    
-    fb = esp_camera_fb_get();
-    //skip_frame();
-   //Serial.println("Got first frame at");
-   //Serial.println(millis());    
+
+    //fb = esp_camera_fb_get(); // CGS: remove redundant capture. not needed if camera is kept turned on
 
     if(light==0)
     {
@@ -539,12 +534,12 @@ int day_switch_value=140;
     //s->set_reg(s,0x92,0xff,0x1); // CGS: Yes sharpening.
     //s->set_reg(s,0x93,0xff,0x0);  
   
-   if(fb) esp_camera_fb_return(fb);
+   //if(fb) esp_camera_fb_return(fb); // CGS: Remove as the capture above is also removed
 
   fb = esp_camera_fb_get();
 
 
-  int retries=0;
+  /*int retries=0;
   if(!fb)
   while(1)
   {
@@ -556,7 +551,7 @@ int day_switch_value=140;
     retries++;
     if(retries>4)break;
     ESP_LOGD(TAG, "Retrying fetch image");
-  }
+  }*/
 
 //since we got the frame buffer, we reset the sensor and put it to sleep while saving the file
     /*s->set_reg(s,0xff,0xff,0x01);//banksel
