@@ -35,8 +35,8 @@ void ESP32Camera::setup() {
   s->set_whitebal(s, 1);       // 0 = disable , 1 = enable
   s->set_awb_gain(s, 1);       // 0 = disable , 1 = enable
   s->set_wb_mode(s, 2);        // 0 to 4 - if awb_gain enabled (0 - Auto, 1 - Sunny, 2 - Cloudy, 3 - Office, 4 - Home)
-  //s->set_exposure_ctrl(s, 1);  // 0 = disable , 1 = enable
-  s->set_aec2(s, 1);           // 0 = disable , 1 = enable
+  s->set_exposure_ctrl(s, 1);  // 0 = disable , 1 = enable
+  //s->set_aec2(s, 1);           // 0 = disable , 1 = enable
   //s->set_ae_level(s, 2);       // -2 to 2
   s->set_aec_value(s, 1200);    // 0 to 1200
   s->set_gain_ctrl(s, 0);      // 0 = disable , 1 = enable
@@ -44,11 +44,11 @@ void ESP32Camera::setup() {
   s->set_gainceiling(s, (gainceiling_t)6);  // 0 to 6
   s->set_bpc(s, 1);            // 0 = disable , 1 = enable
   s->set_wpc(s, 1);            // 0 = disable , 1 = enable
-  s->set_raw_gma(s, 1);        // 0 = disable , 1 = enable
+  //s->set_raw_gma(s, 1);        // 0 = disable , 1 = enable
   s->set_lenc(s, 0);           // 0 = disable , 1 = enable
   //s->set_hmirror(s, 0);        // 0 = disable , 1 = enable
   //s->set_vflip(s, 0);          // 0 = disable , 1 = enable
-  s->set_dcw(s, 0);            // downsize enable? (1 or 0)?
+  //s->set_dcw(s, 0);            // downsize enable? (1 or 0)?
   //s->set_colorbar(s, 0);       // 0 = disable , 1 = enable   
   
   /*s->set_reg(s,0xff,0xff,0x01);//banksel    
