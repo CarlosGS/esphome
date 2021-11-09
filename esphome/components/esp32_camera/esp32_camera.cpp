@@ -51,6 +51,8 @@ void ESP32Camera::setup() {
   //s->set_dcw(s, 0);            // downsize enable? (1 or 0)?
   //s->set_colorbar(s, 0);       // 0 = disable , 1 = enable   
   
+  s->set_reg(s,0x11,0xff,1);//frame rate (1 means longer exposure)
+  
   /*s->set_reg(s,0xff,0xff,0x01);//banksel    
   
       //here we are in night mode
