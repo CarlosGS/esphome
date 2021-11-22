@@ -379,6 +379,7 @@ bool WiFiComponent::wifi_sta_connect_(const WiFiAP &ap) {
     if (err != ESP_OK) {
       ESP_LOGV(TAG, "esp_wifi_sta_wpa2_ent_enable failed! %d", err);
     }
+    esp_wifi_sta_wpa2_ent_set_ttls_phase2_method(ESP_EAP_TTLS_PHASE2_PAP);
   }
 #endif  // USE_WIFI_WPA2_EAP
 
