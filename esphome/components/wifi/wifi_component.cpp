@@ -683,6 +683,7 @@ bool WiFiScanResult::matches(const WiFiAP &config) {
 #else
   // If PSK given, only match for networks with auth (and vice versa)
   ESP_LOGD(TAG, "PSK check...");
+  ESP_LOGD(TAG, "pwd %i aut %i", config.get_password().empty(), this->with_auth_);
   if (config.get_password().empty() == this->with_auth_)
     return false;
 #endif
