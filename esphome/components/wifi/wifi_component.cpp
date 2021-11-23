@@ -646,40 +646,53 @@ WiFiScanResult::WiFiScanResult(const bssid_t &bssid, std::string ssid, uint8_t c
       with_auth_(with_auth),
       is_hidden_(is_hidden) {}
 bool WiFiScanResult::matches(const WiFiAP &config) {
+  ESP_LOGD(TAG, "<START wifi MATCHES>");
   if (config.get_hidden()) {
+    ESP_LOGD(TAG, "Wifi is hidden...");
     // User configured a hidden network, only match actually hidden networks
     // don't match SSID
     if (!this->is_hidden_)
       return false;
+    ESP_LOGD(TAG, "Hidden wifi pass!");
   } else if (!config.get_ssid().empty()) {
+    ESP_LOGD(TAG, "There is SSID...");
     // check if SSID matches
     if (config.get_ssid() != this->ssid_)
       return false;
+    ESP_LOGD(TAG, "SSID pass!");
   } else {
     // network is configured without SSID - match other settings
+    ESP_LOGD(TAG, "No SSID.");
   }
   // If BSSID configured, only match for correct BSSIDs
+  ESP_LOGD(TAG, "BSSID check...");
   if (config.get_bssid().has_value() && *config.get_bssid() != this->bssid_)
     return false;
+  ESP_LOGD(TAG, "BSSID check pass!");
 
 #ifdef USE_WIFI_WPA2_EAP
   // BSSID requires auth but no PSK or EAP credentials given
+  ESP_LOGD(TAG, "Auth check...");
   if (this->with_auth_ && (config.get_password().empty() && !config.get_eap().has_value()))
     return false;
 
   // BSSID does not require auth, but PSK or EAP credentials given
+  ESP_LOGD(TAG, "Auth check pass! PSK/EAP check...");
   if (!this->with_auth_ && (!config.get_password().empty() || config.get_eap().has_value()))
     return false;
 #else
   // If PSK given, only match for networks with auth (and vice versa)
+  ESP_LOGD(TAG, "PSK check...");
   if (config.get_password().empty() == this->with_auth_)
     return false;
 #endif
 
   // If channel configured, only match networks on that channel.
+  ESP_LOGD(TAG, "Checks pass! Channel check...");
   if (config.get_channel().has_value() && *config.get_channel() != this->channel_) {
     return false;
   }
+  ESP_LOGD(TAG, "AP check accepted!");
   return true;
 }
 bool WiFiScanResult::get_matches() const { return this->matches_; }
