@@ -2,11 +2,16 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import i2c, sensor
 from esphome.const import (
+    CONF_AMBIENT_LIGHT,
     CONF_ID,
     CONF_GAIN,
     CONF_LIGHT,
     CONF_RESOLUTION,
+    CONF_UV,
+    CONF_UV_INDEX,
+    UNIT_COUNTS,
     UNIT_LUX,
+    UNIT_UVI,
     ICON_BRIGHTNESS_5,
     DEVICE_CLASS_ILLUMINANCE,
 )
@@ -20,13 +25,8 @@ LTR390Component = ltr390_ns.class_(
     "LTR390Component", cg.PollingComponent, i2c.I2CDevice
 )
 
-CONF_AMBIENT_LIGHT = "ambient_light"
-CONF_UV_INDEX = "uv_index"
 CONF_UV = "uv"
 CONF_WINDOW_CORRECTION_FACTOR = "window_correction_factor"
-
-UNIT_COUNTS = "#"
-UNIT_UVI = "UVI"
 
 LTR390GAIN = ltr390_ns.enum("LTR390GAIN")
 GAIN_OPTIONS = {
