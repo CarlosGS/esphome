@@ -132,7 +132,7 @@ void BME280Component::setup() {
     return;
   }
   config_register &= ~0b11111100;
-  config_register |= 0b000 << 5;  // 0.5 ms standby time
+  config_register |= 0b101 << 5;  // 1000 ms standby time
   config_register |= (this->iir_filter_ & 0b111) << 2;
   if (!this->write_byte(BME280_REGISTER_CONFIG, config_register)) {
     this->mark_failed();
@@ -169,11 +169,11 @@ inline uint8_t oversampling_to_time(BME280Oversampling over_sampling) { return (
 
 void BME280Component::update() {
   // Enable sensor
-  ESP_LOGV(TAG, "Sending conversion request...");
+  /*ESP_LOGV(TAG, "Sending conversion request...");
   uint8_t meas_value = 0;
   meas_value |= (this->temperature_oversampling_ & 0b111) << 5;
   meas_value |= (this->pressure_oversampling_ & 0b111) << 2;
-  meas_value |= BME280_MODE_FORCED;
+  //meas_value |= BME280_MODE_FORCED; // Uncomment to set the forced mode. Currently normal (automatic) mode.
   if (!this->write_byte(BME280_REGISTER_CONTROL, meas_value)) {
     this->status_set_warning();
     return;
@@ -184,7 +184,7 @@ void BME280Component::update() {
   meas_time += 2.3f * oversampling_to_time(this->pressure_oversampling_) + 0.575f;
   meas_time += 2.3f * oversampling_to_time(this->humidity_oversampling_) + 0.575f;
 
-  this->set_timeout("data", uint32_t(ceilf(meas_time)), [this]() {
+  this->set_timeout("data", uint32_t(ceilf(meas_time)), [this]() {*/
     uint8_t data[8];
     if (!this->read_bytes(BME280_REGISTER_MEASUREMENTS, data, 8)) {
       ESP_LOGW(TAG, "Error reading registers.");
@@ -209,7 +209,7 @@ void BME280Component::update() {
     if (this->humidity_sensor_ != nullptr)
       this->humidity_sensor_->publish_state(humidity);
     this->status_clear_warning();
-  });
+  //});
 }
 float BME280Component::read_temperature_(const uint8_t *data, int32_t *t_fine) {
   int32_t adc = ((data[3] & 0xFF) << 16) | ((data[4] & 0xFF) << 8) | (data[5] & 0xFF);
