@@ -39,6 +39,7 @@ static const uint8_t BME280_REGISTER_TEMPDATA = 0xFA;
 static const uint8_t BME280_REGISTER_HUMIDDATA = 0xFD;
 
 static const uint8_t BME280_MODE_FORCED = 0b01;
+static const uint8_t BME280_MODE_NORMAL = 0b11;
 
 inline uint16_t combine_bytes(uint8_t msb, uint8_t lsb) { return ((msb & 0xFF) << 8) | (lsb & 0xFF); }
 
@@ -143,7 +144,7 @@ void BME280Component::setup() {
   uint8_t meas_value = 0;
   meas_value |= (this->temperature_oversampling_ & 0b111) << 5;
   meas_value |= (this->pressure_oversampling_ & 0b111) << 2;
-  //meas_value |= BME280_MODE_FORCED; // Uncomment to set the forced mode. Currently normal (automatic) mode.
+  meas_value |= BME280_MODE_NORMAL;
   if (!this->write_byte(BME280_REGISTER_CONTROL, meas_value)) {
     this->mark_failed();
     return;
