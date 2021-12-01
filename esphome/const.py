@@ -579,6 +579,7 @@ CONF_SEND_EVERY = "send_every"
 CONF_SEND_FIRST_AT = "send_first_at"
 CONF_SENSING_PIN = "sensing_pin"
 CONF_SENSOR = "sensor"
+CONF_SENSOR_DATAPOINT = "sensor_datapoint"
 CONF_SENSOR_ID = "sensor_id"
 CONF_SENSORS = "sensors"
 CONF_SEQUENCE = "sequence"
@@ -864,7 +865,6 @@ DEVICE_CLASS_SAFETY = "safety"
 DEVICE_CLASS_SMOKE = "smoke"
 DEVICE_CLASS_SOUND = "sound"
 DEVICE_CLASS_TAMPER = "tamper"
-DEVICE_CLASS_UPDATE = "update"
 DEVICE_CLASS_VIBRATION = "vibration"
 DEVICE_CLASS_WINDOW = "window"
 # device classes of both binary_sensor and sensor component
@@ -896,6 +896,11 @@ DEVICE_CLASS_TEMPERATURE = "temperature"
 DEVICE_CLASS_TIMESTAMP = "timestamp"
 DEVICE_CLASS_VOLATILE_ORGANIC_COMPOUNDS = "volatile_organic_compounds"
 DEVICE_CLASS_VOLTAGE = "voltage"
+# device classes of both binary_sensor and button component
+DEVICE_CLASS_UPDATE = "update"
+# device classes of button component
+DEVICE_CLASS_RESTART = "restart"
+
 
 # state classes
 STATE_CLASS_NONE = ""
