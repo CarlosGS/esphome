@@ -230,6 +230,7 @@ const char *const UART_SELECTIONS[] = {"UART0", "UART1", "UART2"};
 const char *const UART_SELECTIONS[] = {"UART0", "UART1", "UART0_SWAP"};
 #endif
 void Logger::dump_config() {
+  delay(1);
   ESP_LOGCONFIG(TAG, "Logger:");
   ESP_LOGCONFIG(TAG, "  Level: %s", LOG_LEVELS[ESPHOME_LOG_LEVEL]);
   ESP_LOGCONFIG(TAG, "  Log Baud Rate: %u", this->baud_rate_);
