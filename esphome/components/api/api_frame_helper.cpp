@@ -146,16 +146,22 @@ APIError APINoiseFrameHelper::init() {
 /// Run through handshake messages (if in that phase)
 APIError APINoiseFrameHelper::loop() {
   APIError err = state_action_();
+  printf("N\n");
   if (err == APIError::WOULD_BLOCK)
     return APIError::OK;
+  printf("O\n");
   if (err != APIError::OK)
     return err;
+  printf("P\n");
   if (!tx_buf_.empty()) {
+    printf("Q\n");
     err = try_send_tx_buf_();
+    printf("R\n");
     if (err != APIError::OK) {
       return err;
     }
   }
+  printf("S\n");
   return APIError::OK;
 }
 
@@ -751,16 +757,21 @@ APIError APIPlaintextFrameHelper::init() {
 }
 /// Not used for plaintext
 APIError APIPlaintextFrameHelper::loop() {
+  printf("T\n");
   if (state_ != State::DATA) {
     return APIError::BAD_STATE;
   }
+  printf("U\n");
   // try send pending TX data
   if (!tx_buf_.empty()) {
+    printf("V\n");
     APIError err = try_send_tx_buf_();
+    printf("W\n");
     if (err != APIError::OK) {
       return err;
     }
   }
+  printf("X\n");
   return APIError::OK;
 }
 
