@@ -820,22 +820,35 @@ void APIConnection::subscribe_home_assistant_states(const SubscribeHomeAssistant
   state_subs_at_ = 0;
 }
 bool APIConnection::send_buffer(ProtoWriteBuffer buffer, uint32_t message_type) {
+  printf("A\n");
   if (this->remove_)
     return false;
+  printf("B\n");
   if (!this->helper_->can_write_without_blocking()) {
-    delay(0);
+    printf("C\n");
+    delay(1);
+    printf("D\n");
     APIError err = helper_->loop();
+    printf("E\n");
     if (err != APIError::OK) {
+      printf("F\n");
       on_fatal_error();
+      printf("G\n");
       ESP_LOGW(TAG, "%s: Socket operation failed: %s errno=%d", client_info_.c_str(), api_error_to_str(err), errno);
+      printf("H\n");
       return false;
     }
+    printf("I\n");
     if (!this->helper_->can_write_without_blocking()) {
+      printf("J\n");
       // SubscribeLogsResponse
       if (message_type != 29) {
+        printf("K\n");
         ESP_LOGV(TAG, "Cannot send message because of TCP buffer space");
       }
-      delay(0);
+      printf("L\n");
+      delay(1);
+      printf("M\n");
       return false;
     }
   }
