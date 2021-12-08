@@ -203,33 +203,27 @@ void ESP32Camera::loop() {
 }
 void ESP32Camera::framebuffer_task(void *pv) {
   while (true) {
-    // Normal ESPHome capture
-    camera_fb_t *framebuffer = esp_camera_fb_get();
+    // Testing code by @raduprv, from https://github.com/raduprv/esp32-cam_ov2640-timelapse/blob/main/ov2640_timelapse_github.ino
+    sensor_t *s = esp_camera_sensor_get();
+    camera_fb_t *framebuffer = nullptr;
     while(framebuffer == nullptr) { // CGS: retry until a frame is ready
-      delay(100);
+      //if(light==0) {
+      s->set_reg(s,0x47,0xff,0x40);//Frame Length Adjustment MSBs
+      s->set_reg(s,0x2a,0xf0,0xf0);//line adjust MSB
+      s->set_reg(s,0x2b,0xff,0xff);//line adjust
+      //}
+
+      // if(light<day_switch_value)
+          s->set_reg(s,0x43,0xff,0x40);//magic value to give us the frame faster (bit 6 must be 1)
+
+      s->set_reg(s,0xff,0xff,0x00);//banksel 
+      s->set_reg(s,0xd3,0xff,0x8);//clock
+
+      //if(fb)esp_camera_fb_return(fb);
+
       framebuffer = esp_camera_fb_get();
     }
     xQueueSend(global_esp32_camera->framebuffer_get_queue_, &framebuffer, portMAX_DELAY);
-    
-    
-    // Testing code by @raduprv, from https://github.com/raduprv/esp32-cam_ov2640-timelapse/blob/main/ov2640_timelapse_github.ino
-    sensor_t *s = esp_camera_sensor_get();
-    
-    //if(light==0) {
-    s->set_reg(s,0x47,0xff,0x40);//Frame Length Adjustment MSBs
-    s->set_reg(s,0x2a,0xf0,0xf0);//line adjust MSB
-    s->set_reg(s,0x2b,0xff,0xff);//line adjust
-    //}
-
-    // if(light<day_switch_value)
-        s->set_reg(s,0x43,0xff,0x40);//magic value to give us the frame faster (bit 6 must be 1)
-
-    s->set_reg(s,0xff,0xff,0x00);//banksel 
-    s->set_reg(s,0xd3,0xff,0x8);//clock
-    
-    //if(fb)esp_camera_fb_return(fb);
-
-    // Normal ESPHome fb return
     // return is no-op for config with 1 fb
     xQueueReceive(global_esp32_camera->framebuffer_return_queue_, &framebuffer, portMAX_DELAY);
     esp_camera_fb_return(framebuffer);
