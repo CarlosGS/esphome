@@ -171,6 +171,8 @@ void ESP32Camera::framebuffer_task(void *pv) {
   while (true) {
     sensor_t *s = esp_camera_sensor_get();
     s->set_reg(s,0x43,0xff,0x40);//magic value to give us the frame faster (bit 6 must be 1). from https://github.com/raduprv/esp32-cam_ov2640-timelapse
+    s->set_reg(s,0xff,0xff,0x00);//banksel 
+    s->set_reg(s,0xd3,0xff,0x8);//clock. CGS: Is this what triggers a snapshot?
     camera_fb_t *framebuffer = esp_camera_fb_get();
     xQueueSend(global_esp32_camera->framebuffer_get_queue_, &framebuffer, portMAX_DELAY);
     // return is no-op for config with 1 fb
