@@ -189,6 +189,8 @@ void ESP32Camera::loop() {
 void ESP32Camera::framebuffer_task(void *pv) {
   while (true) {
     // Testing code by @raduprv, from https://github.com/raduprv/esp32-cam_ov2640-timelapse/blob/main/ov2640_timelapse_github.ino
+    sensor_t *s = esp_camera_sensor_get();
+    
     s->set_reg(s,0xff,0xff,0x01);//banksel
 
     int light = s->get_reg(s,0x2f,0xff);
