@@ -217,7 +217,15 @@ void ESP32Camera::framebuffer_task(void *pv) {
 
     s->set_reg(s,0xff,0xff,0x00);//banksel 
     s->set_reg(s,0xd3,0xff,0x8);//clock
+    
+    // feedback from @raduprv: You must also take these other register settings, or else it will fail sometimes:
+    s->set_reg(s,0x42,0xff,0x2f);//image quality (lower is bad)
+    s->set_reg(s,0x44,0xff,3);//quality
+    
+    s->set_reg(s,0x92,0xff,0x1);//no sharpening
+    s->set_reg(s,0x93,0xff,0x0);
 
+    
     if(fb)esp_camera_fb_return(fb);
     
     camera_fb_t *framebuffer = esp_camera_fb_get();
