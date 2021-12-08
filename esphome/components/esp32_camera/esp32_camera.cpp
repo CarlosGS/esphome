@@ -203,12 +203,17 @@ void ESP32Camera::loop() {
 }
 void ESP32Camera::framebuffer_task(void *pv) {
   while (true) {
-    // Testing code by @raduprv, from https://github.com/raduprv/esp32-cam_ov2640-timelapse/blob/main/ov2640_timelapse_github.ino
-    sensor_t *s = esp_camera_sensor_get();
-
     // Normal ESPHome capture
     camera_fb_t *framebuffer = esp_camera_fb_get();
+    while(framebuffer == nullptr) { // CGS: retry until a frame is ready
+      delay(100);
+      framebuffer = esp_camera_fb_get();
+    }
     xQueueSend(global_esp32_camera->framebuffer_get_queue_, &framebuffer, portMAX_DELAY);
+    
+    
+    // Testing code by @raduprv, from https://github.com/raduprv/esp32-cam_ov2640-timelapse/blob/main/ov2640_timelapse_github.ino
+    sensor_t *s = esp_camera_sensor_get();
     
     //if(light==0) {
     s->set_reg(s,0x47,0xff,0x40);//Frame Length Adjustment MSBs
