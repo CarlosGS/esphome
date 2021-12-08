@@ -229,6 +229,20 @@ void ESP32Camera::framebuffer_task(void *pv) {
     // return is no-op for config with 1 fb
     xQueueReceive(global_esp32_camera->framebuffer_return_queue_, &framebuffer, portMAX_DELAY);
     esp_camera_fb_return(framebuffer);
+    
+    // CGS: Repeat the initial commands
+    s->set_reg(s,0xff,0xff,0x01);//banksel
+
+    int light = s->get_reg(s,0x2f,0xff);
+
+    //if(light<day_switch_value) { // CGS: forcing night mode here, to strip down the code, but the "light" reading could be used to switch day/night mode automatically
+    //here we are in night mode
+    //if(light<45)
+        s->set_reg(s,0x11,0xff,1);//frame rate (1 means longer exposure)
+    s->set_reg(s,0x13,0xff,0);//manual everything
+    s->set_reg(s,0x0c,0x6,0x8);//manual banding
+    s->set_reg(s,0x45,0x3f,0x3f);//really long exposure (but it doesn't really work)
+    //}
   }
 }
 ESP32Camera::ESP32Camera(const std::string &name) : EntityBase(name) {
