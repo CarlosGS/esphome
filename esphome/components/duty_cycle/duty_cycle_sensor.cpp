@@ -29,7 +29,7 @@ void DutyCycleSensor::update() {
     now = micros();
     last_interrupt = this->store_.last_interrupt;  // Read the measurement taken by the interrupt
     on_time = this->store_.on_time;
-    level = this->store_.last_level
+    level = this->store_.last_level;
 
     this->store_.on_time = 0;  // Start new measurement, exactly aligned with the micros() reading
     this->store_.last_interrupt = now;
