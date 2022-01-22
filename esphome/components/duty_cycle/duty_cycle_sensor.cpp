@@ -23,19 +23,19 @@ void DutyCycleSensor::dump_config() {
 }
 void DutyCycleSensor::update() {
   uint32_t now, last_interrupt, on_time;
+  bool level;
   {
     InterruptLock lock;
     now = micros();
     last_interrupt = this->store_.last_interrupt;  // Read the measurement taken by the interrupt
     on_time = this->store_.on_time;
+    level = this->store_.last_level
 
     this->store_.on_time = 0;  // Start new measurement, exactly aligned with the micros() reading
     this->store_.last_interrupt = now;
   }
 
   if (this->last_update_ != 0) {
-    const bool level = this->store_.last_level;
-
     if (level)
       on_time += now - last_interrupt;
 
@@ -51,11 +51,11 @@ void DutyCycleSensor::update() {
 float DutyCycleSensor::get_setup_priority() const { return setup_priority::DATA; }
 
 void IRAM_ATTR DutyCycleSensorStore::gpio_intr(DutyCycleSensorStore *arg) {
+  const uint32_t now = micros();
   const bool new_level = arg->pin.digital_read();
   if (new_level == arg->last_level)
     return;
   arg->last_level = new_level;
-  const uint32_t now = micros();
 
   if (!new_level)
     arg->on_time += now - arg->last_interrupt;
