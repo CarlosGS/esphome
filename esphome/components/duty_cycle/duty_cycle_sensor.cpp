@@ -51,11 +51,11 @@ void DutyCycleSensor::update() {
 float DutyCycleSensor::get_setup_priority() const { return setup_priority::DATA; }
 
 void IRAM_ATTR DutyCycleSensorStore::gpio_intr(DutyCycleSensorStore *arg) {
-  const uint32_t now = micros();
   const bool new_level = arg->pin.digital_read();
   if (new_level == arg->last_level)
     return;
   arg->last_level = new_level;
+  const uint32_t now = micros();
 
   if (!new_level)
     arg->on_time += now - arg->last_interrupt;
