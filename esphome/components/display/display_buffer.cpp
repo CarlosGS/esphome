@@ -5,6 +5,7 @@
 #include "esphome/core/color.h"
 #include "esphome/core/log.h"
 #include "esphome/core/hal.h"
+#include "esphome/core/helpers.h"
 
 namespace esphome {
 namespace display {
@@ -15,7 +16,8 @@ const Color COLOR_OFF(0, 0, 0, 0);
 const Color COLOR_ON(255, 255, 255, 255);
 
 void DisplayBuffer::init_internal_(uint32_t buffer_length) {
-  this->buffer_ = new (std::nothrow) uint8_t[buffer_length];  // NOLINT
+  ExternalRAMAllocator<uint8_t> allocator(ExternalRAMAllocator<uint8_t>::ALLOW_FAILURE);
+  this->buffer_ = allocator.allocate(buffer_length);
   if (this->buffer_ == nullptr) {
     ESP_LOGE(TAG, "Could not allocate buffer for display!");
     return;
@@ -228,6 +230,14 @@ void DisplayBuffer::image(int x, int y, Image *image, Color color_on, Color colo
       for (int img_x = 0; img_x < image->get_width(); img_x++) {
         for (int img_y = 0; img_y < image->get_height(); img_y++) {
           this->draw_pixel_at(x + img_x, y + img_y, image->get_color_pixel(img_x, img_y));
+        }
+      }
+      break;
+    case IMAGE_TYPE_TRANSPARENT_BINARY:
+      for (int img_x = 0; img_x < image->get_width(); img_x++) {
+        for (int img_y = 0; img_y < image->get_height(); img_y++) {
+          if (image->get_pixel(img_x, img_y))
+            this->draw_pixel_at(x + img_x, y + img_y, color_on);
         }
       }
       break;
