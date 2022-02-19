@@ -9,7 +9,7 @@ DEPENDENCIES = ["esp32"]
 
 def valid_dac_pin(value):
     num = value[CONF_NUMBER]
-    cv.one_of(25, 26)(num)
+    cv.one_of(25, 26, 17, 18)(num)
     return value
 
 
