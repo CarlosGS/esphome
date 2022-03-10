@@ -125,6 +125,14 @@ void ESP32Camera::dump_config() {
 }
 
 void ESP32Camera::loop() {
+  // check if we can return the image
+  if (this->can_return_image_()) {
+    // return image
+    auto *fb = this->current_image_->get_raw_buffer();
+    xQueueSend(this->framebuffer_return_queue_, &fb, portMAX_DELAY);
+    this->current_image_.reset();
+  }
+  
   // request idle image every idle_update_interval
   const uint32_t now = millis();
   if (this->idle_update_interval_ != 0 && now - this->last_idle_request_ > this->idle_update_interval_) {
@@ -141,14 +149,6 @@ void ESP32Camera::loop() {
   }
   if (now - this->last_update_ <= this->max_update_interval_)
     return;
-  
-  // check if we can return the image
-  if (this->can_return_image_()) {
-    // return image
-    auto *fb = this->current_image_->get_raw_buffer();
-    xQueueSend(this->framebuffer_return_queue_, &fb, portMAX_DELAY);
-    this->current_image_.reset();
-  }
   
   // request new image
   camera_fb_t *fb;
@@ -320,6 +320,7 @@ void ESP32Camera::framebuffer_task(void *pv) {
     // return is no-op for config with 1 fb
     xQueueReceive(global_esp32_camera->framebuffer_return_queue_, &framebuffer, portMAX_DELAY);
     esp_camera_fb_return(framebuffer);
+    delay(7000);
   }
 }
 
