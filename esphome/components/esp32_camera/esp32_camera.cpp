@@ -314,6 +314,9 @@ uint32_t ESP32Camera::hash_base() { return 3010542557UL; }
 bool ESP32Camera::has_requested_image_() const { return this->single_requesters_ || this->stream_requesters_; }
 bool ESP32Camera::can_return_image_() const { return this->current_image_.use_count() == 1; }
 void ESP32Camera::framebuffer_task(void *pv) {
+  sensor_t *s = esp_camera_sensor_get();
+  s->set_reg(s,0xff,0xff,0x01);//banksel
+  s->set_reg(s,0x11,0xff,1);//frame rate (1 means longer exposure)
   while (true) {
     camera_fb_t *framebuffer = esp_camera_fb_get();
     xQueueSend(global_esp32_camera->framebuffer_get_queue_, &framebuffer, portMAX_DELAY);
