@@ -317,6 +317,10 @@ void ESP32Camera::framebuffer_task(void *pv) {
   sensor_t *s = esp_camera_sensor_get();
   s->set_reg(s,0xff,0xff,0x01);//banksel
   s->set_reg(s,0x11,0xff,1);//frame rate (1 means longer exposure)
+  s->set_reg(s,0x45,0x3f,0x3f);//really long exposure (but it doesn't really work)
+  s->set_reg(s,0x43,0xff,0x40);//magic value to give us the frame faster (bit 6 must be 1)
+  s->set_reg(s,0xff,0xff,0x00);//banksel 
+  s->set_reg(s,0xd3,0xff,0x8);//clock
   while (true) {
     camera_fb_t *framebuffer = esp_camera_fb_get();
     xQueueSend(global_esp32_camera->framebuffer_get_queue_, &framebuffer, portMAX_DELAY);
