@@ -27,6 +27,7 @@ void Tx20Component::dump_config() {
 
   LOG_SENSOR("  ", "Wind speed:", this->wind_speed_sensor_);
   LOG_SENSOR("  ", "Wind direction degrees:", this->wind_direction_degrees_sensor_);
+  ESP_LOGCONFIG(TAG, "  ignore_inverted: %s", this->ignore_inverted_ ? "true" : "false");
 
   LOG_PIN("  Pin: ", this->pin_);
 }
