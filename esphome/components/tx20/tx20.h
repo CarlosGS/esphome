@@ -46,6 +46,7 @@ class Tx20Component : public Component {
   sensor::Sensor *wind_speed_sensor_;
   sensor::Sensor *wind_direction_degrees_sensor_;
   Tx20ComponentStore store_;
+  bool ignore_inverted_{true};
 };
 
 }  // namespace tx20
