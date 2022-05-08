@@ -32,6 +32,7 @@ class Tx20Component : public Component {
   void set_wind_direction_degrees_sensor(sensor::Sensor *wind_direction_degrees_sensor) {
     wind_direction_degrees_sensor_ = wind_direction_degrees_sensor;
   }
+  void set_ignore_inverted(bool ignore_inverted) { ignore_inverted_ = ignore_inverted; }
 
   void setup() override;
   void dump_config() override;
