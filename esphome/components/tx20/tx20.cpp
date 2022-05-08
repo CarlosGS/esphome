@@ -166,11 +166,6 @@ void IRAM_ATTR Tx20ComponentStore::gpio_intr(Tx20ComponentStore *arg) {
     arg->reset();
     return;
   }
-  // third delay has to be ~2400
-  if (index == 3 && (delay > 3000 || delay < 2400)) {
-    arg->reset();
-    return;
-  }
 
   if (arg->tx20_available || ((arg->spent_time + delay > TX20_MAX_TIME) && arg->start_time)) {
     arg->tx20_available = true;
