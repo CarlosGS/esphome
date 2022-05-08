@@ -105,22 +105,22 @@ void Tx20Component::decode_and_publish_() {
   // checks:
   // 1. Check that the start frame is 00100 (0x04)
   // 2. Check received checksum matches calculated checksum
-  // 3. Check that Wind Direction matches Wind Direction (Inverted)
-  // 4. Check that Wind Speed matches Wind Speed (Inverted)
+  // 3. (optional) Check that Wind Direction matches Wind Direction (Inverted)
+  // 4. (optional) Check that Wind Speed matches Wind Speed (Inverted)
   ESP_LOGVV(TAG, "BUFFER %s", string_buffer_2.c_str());
   ESP_LOGVV(TAG, "Decoded bits %s", string_buffer.c_str());
 
   if (tx20_sa == 4) {
     if (chk == tx20_sd) {
-      if (tx20_sf == tx20_sc) {
+      if (this->ignore_inverted_ || tx20_sf == tx20_sc) {
         tx20_wind_speed_kmh = float(tx20_sc) * 0.36f;
         ESP_LOGV(TAG, "WindSpeed %f", tx20_wind_speed_kmh);
         if (this->wind_speed_sensor_ != nullptr)
           this->wind_speed_sensor_->publish_state(tx20_wind_speed_kmh);
         value_set = true;
       }
-      if (tx20_se == tx20_sb) {
-        tx20_wind_direction = tx20_se;
+      if (this->ignore_inverted_ || tx20_se == tx20_sb) {
+        tx20_wind_direction = tx20_sb;
         if (tx20_wind_direction >= 0 && tx20_wind_direction < 16) {
           wind_cardinal_direction_ = DIRECTIONS[tx20_wind_direction];
         }
