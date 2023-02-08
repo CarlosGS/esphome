@@ -22,12 +22,6 @@ static const uint8_t BME680_REGISTER_CHIPID = 0xD0;
 
 static const uint8_t BME680_REGISTER_FIELD0 = 0x1D;
 
-const float BME680_GAS_LOOKUP_TABLE_1[16] PROGMEM = {0.0, 0.0, 0.0,  0.0,  0.0, -1.0, 0.0, -0.8,
-                                                     0.0, 0.0, -0.2, -0.5, 0.0, -1.0, 0.0, 0.0};
-
-const float BME680_GAS_LOOKUP_TABLE_2[16] PROGMEM = {0.0,  0.0, 0.0, 0.0, 0.1, 0.7, 0.0, -0.8,
-                                                     -0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-
 static const char *oversampling_to_str(BME680Oversampling oversampling) {
   switch (oversampling) {
     case BME680_OVERSAMPLING_NONE:
@@ -428,20 +422,29 @@ float BME680Component::calc_humidity_(uint16_t raw_humidity) {
 
   return calc_hum;
 }
-uint32_t BME680Component::calc_gas_resistance_(uint16_t raw_gas, uint8_t range) {
-  float calc_gas_res;
-  float var1 = 0;
-  float var2 = 0;
-  float var3 = 0;
-  const float range_sw_err = this->calibration_.range_sw_err;
+uint32_t BME680Component::calc_gas_resistance_(uint16_t gas_res_adc, uint8_t gas_range) {
+	int64_t var1;
+	uint64_t var2;
+	int64_t var3;
+	uint32_t calc_gas_res;
+	/**Look up table 1 for the possible gas range values */
+	uint32_t lookupTable1[16] = { UINT32_C(2147483647), UINT32_C(2147483647), UINT32_C(2147483647), UINT32_C(2147483647),
+		UINT32_C(2147483647), UINT32_C(2126008810), UINT32_C(2147483647), UINT32_C(2130303777),
+		UINT32_C(2147483647), UINT32_C(2147483647), UINT32_C(2143188679), UINT32_C(2136746228),
+		UINT32_C(2147483647), UINT32_C(2126008810), UINT32_C(2147483647), UINT32_C(2147483647) };
+	/**Look up table 2 for the possible gas range values */
+	uint32_t lookupTable2[16] = { UINT32_C(4096000000), UINT32_C(2048000000), UINT32_C(1024000000), UINT32_C(512000000),
+		UINT32_C(255744255), UINT32_C(127110228), UINT32_C(64000000), UINT32_C(32258064), UINT32_C(16016016),
+		UINT32_C(8000000), UINT32_C(4000000), UINT32_C(2000000), UINT32_C(1000000), UINT32_C(500000),
+		UINT32_C(250000), UINT32_C(125000) };
 
-  var1 = 1340.0f + (5.0f * range_sw_err);
-  var2 = var1 * (1.0f + BME680_GAS_LOOKUP_TABLE_1[range] / 100.0f);
-  var3 = 1.0f + (BME680_GAS_LOOKUP_TABLE_2[range] / 100.0f);
+	var1 = (int64_t) ((1340 + (5 * (int64_t) this->calibration_.range_sw_err)) *
+		((int64_t) lookupTable1[gas_range])) >> 16;
+	var2 = (((int64_t) ((int64_t) gas_res_adc << 15) - (int64_t) (16777216)) + var1);
+	var3 = (((int64_t) lookupTable2[gas_range] * (int64_t) var1) >> 9);
+	calc_gas_res = (uint32_t) ((var3 + ((int64_t) var2 >> 1)) / (int64_t) var2);
 
-  calc_gas_res = 1.0f / (var3 * 0.000000125f * float(1 << range) * (((float(raw_gas) - 512.0f) / var2) + 1.0f));
-
-  return static_cast<uint32_t>(calc_gas_res);
+	return calc_gas_res;
 }
 uint32_t BME680Component::calc_meas_duration_() {
   uint32_t tph_dur;  // Calculate in us
