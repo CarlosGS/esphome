@@ -117,22 +117,24 @@ void BME680Component::setup() {
   this->calibration_.gh2 = cal2[12] << 8 | cal2[13];
   this->calibration_.gh3 = cal2[15];
 
-  if (!this->read_byte(0x02, &this->calibration_.res_heat_range)) {
+  uint8_t temp_var = 0;
+  if (!this->read_byte(0x02, &temp_var)) {
     this->mark_failed();
     return;
   }
-  this->calibration_.res_heat_range = ((this->calibration_.res_heat_range & 0x30) / 16);
+  this->calibration_.res_heat_range = ((temp_var & 0x30) / 16);
 
-  if (!this->read_byte(0x00, &this->calibration_.res_heat_val)) {
+  if (!this->read_byte(0x00, &temp_var)) {
     this->mark_failed();
     return;
   }
+  this->calibration_.res_heat_val = (int8_t) temp_var;
 
-  if (!this->read_byte(0x04, &this->calibration_.range_sw_err)) {
+  if (!this->read_byte(0x04, &temp_var)) {
     this->mark_failed();
     return;
   }
-  this->calibration_.range_sw_err = ((int8_t) this->calibration_.range_sw_err & 0xf0) / 16;
+  this->calibration_.range_sw_err = ((int8_t) temp_var & 0xf0) / 16;
 
   this->calibration_.ambient_temperature = 25;  // prime ambient temperature
 
