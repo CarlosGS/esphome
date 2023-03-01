@@ -121,14 +121,18 @@ void BME680Component::setup() {
     this->mark_failed();
     return;
   }
+  this->calibration_.res_heat_range = ((this->calibration_.res_heat_range & 0x30) / 16);
+
   if (!this->read_byte(0x00, &this->calibration_.res_heat_val)) {
     this->mark_failed();
     return;
   }
+
   if (!this->read_byte(0x04, &this->calibration_.range_sw_err)) {
     this->mark_failed();
     return;
   }
+  this->calibration_.range_sw_err = ((int8_t) this->calibration_.range_sw_err & 0xf0) / 16;
 
   this->calibration_.ambient_temperature = 25;  // prime ambient temperature
 
@@ -249,12 +253,12 @@ uint8_t BME680Component::calc_heater_resistance_(uint16_t temperature) {
   if (temperature > 400)
     temperature = 400;
 
-  const uint8_t ambient_temperature = this->calibration_.ambient_temperature;
+  const int8_t ambient_temperature = this->calibration_.ambient_temperature;
   const int8_t gh1 = this->calibration_.gh1;
   const int16_t gh2 = this->calibration_.gh2;
   const int8_t gh3 = this->calibration_.gh3;
   const uint8_t res_heat_range = this->calibration_.res_heat_range;
-  const uint8_t res_heat_val = this->calibration_.res_heat_val;
+  const int8_t res_heat_val = this->calibration_.res_heat_val;
 
   uint8_t heatr_res;
   int32_t var1;
@@ -300,7 +304,7 @@ void BME680Component::read_data_() {
   uint32_t raw_temperature = (uint32_t(data[5]) << 12) | (uint32_t(data[6]) << 4) | (uint32_t(data[7]) >> 4);
   uint32_t raw_pressure = (uint32_t(data[2]) << 12) | (uint32_t(data[3]) << 4) | (uint32_t(data[4]) >> 4);
   uint32_t raw_humidity = (uint32_t(data[8]) << 8) | uint32_t(data[9]);
-  uint16_t raw_gas = (uint16_t(data[13]) << 2) | (uint16_t(14) >> 6);
+  uint16_t raw_gas = (uint16_t(data[13]) << 2) | (uint16_t(data[14]) >> 6);
   uint8_t gas_range = data[14] & 0x0F;
 
   float temperature = this->calc_temperature_(raw_temperature);
