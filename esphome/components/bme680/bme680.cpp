@@ -308,7 +308,7 @@ void BME680Component::read_data_() {
   float humidity = this->calc_humidity_(raw_humidity);
   float gas_resistance = NAN;
   if (data[14] & 0x20) {
-    gas_resistance = this->calc_gas_resistance_(raw_gas, gas_range);
+    gas_resistance = this->calc_gas_resistance_high_(raw_gas, gas_range);
   }
 
   ESP_LOGD(TAG, "Got temperature=%.1f°C pressure=%.1fhPa humidity=%.1f%% gas_resistance=%.1fΩ", temperature, pressure,
@@ -428,18 +428,40 @@ float BME680Component::calc_humidity_(uint16_t raw_humidity) {
 
   return calc_hum;
 }
-uint32_t BME680Component::calc_gas_resistance_(uint16_t raw_gas, uint8_t range) {
-  uint32_t calc_gas_res;
-  uint32_t var1 = UINT32_C(262144) >> range;
-  int32_t var2 = (int32_t)raw_gas - INT32_C(512);
+float BME680Component::calc_gas_resistance_low_(uint16_t gas_res_adc, uint8_t gas_range)
+{
+    float calc_gas_res;
+    float var1;
+    float var2;
+    float var3;
+    float gas_res_f = gas_res_adc;
+    float gas_range_f = (1U << gas_range); /*lint !e790 / Suspicious truncation, integral to float */
+    const float lookup_k1_range[16] = {
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, -0.8f, 0.0f, 0.0f, -0.2f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f
+    };
+    const float lookup_k2_range[16] = {
+        0.0f, 0.0f, 0.0f, 0.0f, 0.1f, 0.7f, 0.0f, -0.8f, -0.1f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f
+    };
 
-  var2 *= INT32_C(3);
-  var2 = INT32_C(4096) + var2;
+    var1 = (1340.0f + (5.0f * this->calibration_.range_sw_err));
+    var2 = (var1) * (1.0f + lookup_k1_range[gas_range] / 100.0f);
+    var3 = 1.0f + (lookup_k2_range[gas_range] / 100.0f);
+    calc_gas_res = 1.0f / (float)(var3 * (0.000000125f) * gas_range_f * (((gas_res_f - 512.0f) / var2) + 1.0f));
 
-  calc_gas_res = (UINT32_C(10000) * var1) / (uint32_t)var2;
-  calc_gas_res = calc_gas_res * 100;
+    return calc_gas_res;
+}
+float BME680Component::calc_gas_resistance_high_(uint16_t gas_res_adc, uint8_t gas_range)
+{
+    float calc_gas_res;
+    uint32_t var1 = UINT32_C(262144) >> gas_range;
+    int32_t var2 = (int32_t)gas_res_adc - INT32_C(512);
 
-  return calc_gas_res;
+    var2 *= INT32_C(3);
+    var2 = INT32_C(4096) + var2;
+
+    calc_gas_res = 1000000.0f * (float)var1 / (float)var2;
+
+    return calc_gas_res;
 }
 uint32_t BME680Component::calc_meas_duration_() {
   uint32_t tph_dur;  // Calculate in us
