@@ -313,19 +313,25 @@ void BME680Component::read_data_() {
   float pressure = this->calc_pressure_(raw_pressure);
   float humidity = this->calc_humidity_(raw_humidity);
   float gas_resistance = NAN;
-  if (data[14] & 0x20) {
-    gas_resistance = this->calc_gas_resistance_(raw_gas, gas_range);
-  }
+
+  bool gas_valid = (data[14] >> 5) & 1;
+  bool heat_stable = (data[14] >> 4) & 1;
+
+  gas_resistance = this->calc_gas_resistance_(raw_gas, gas_range);
 
   ESP_LOGD(TAG, "Got temperature=%.1f°C pressure=%.1fhPa humidity=%.1f%% gas_resistance=%.1fΩ", temperature, pressure,
            humidity, gas_resistance);
+
+  if(!gas_valid) ESP_LOGW(TAG, "Gas measurement unsuccessful, reading invalid!");
+  if(!heat_stable) ESP_LOGW(TAG, "Heater unstable! This is normal for the first readings upon a restart.");
+
   if (this->temperature_sensor_ != nullptr)
     this->temperature_sensor_->publish_state(temperature);
   if (this->pressure_sensor_ != nullptr)
     this->pressure_sensor_->publish_state(pressure);
   if (this->humidity_sensor_ != nullptr)
     this->humidity_sensor_->publish_state(humidity);
-  if (this->gas_resistance_sensor_ != nullptr)
+  if (this->gas_resistance_sensor_ != nullptr && gas_valid && heat_stable)
     this->gas_resistance_sensor_->publish_state(gas_resistance);
   this->status_clear_warning();
 }
