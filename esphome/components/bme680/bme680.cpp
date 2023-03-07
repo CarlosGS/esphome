@@ -108,7 +108,7 @@ void BME680Component::setup() {
   this->calibration_.p10 = cal1[23];
 
   this->calibration_.gh1 = cal2[14];
-  this->calibration_.gh2 = cal2[12] << 8 | cal2[13];
+  this->calibration_.gh2 = (int16_t)((uint16_t)cal2[12] << 8 | (uint16_t)cal2[13]);
   this->calibration_.gh3 = cal2[15];
 
   uint8_t temp_var = 0;
