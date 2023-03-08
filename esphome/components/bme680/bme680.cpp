@@ -323,6 +323,7 @@ void BME680Component::read_data_() {
   if (this->heater_temperature_ == 0 || this->heater_duration_ == 0)
     heat_stable = true;  // Allow reporting gas resistance when heater is disabled
 
+  ESP_LOGD(TAG, "gas=%u range=%u sw_err=%d", raw_gas, gas_range, this->calibration_.range_sw_err);
   ESP_LOGD(TAG, "Got temperature=%.1f°C pressure=%.1fhPa humidity=%.1f%% gas_resistance=%.1fΩ", temperature, pressure,
            humidity, gas_resistance);
   if (!gas_valid)
