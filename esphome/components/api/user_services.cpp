@@ -10,6 +10,11 @@ template<> int get_execute_arg_value<int>(const ExecuteServiceArgument &arg) {
     return arg.legacy_int;
   return arg.int_;
 }
+template<> long get_execute_arg_value<long>(const ExecuteServiceArgument &arg) {
+  if (arg.legacy_int != 0)
+    return arg.legacy_int;
+  return arg.int_;
+}
 template<> float get_execute_arg_value<float>(const ExecuteServiceArgument &arg) { return arg.float_; }
 template<> std::string get_execute_arg_value<std::string>(const ExecuteServiceArgument &arg) { return arg.string_; }
 template<> std::vector<bool> get_execute_arg_value<std::vector<bool>>(const ExecuteServiceArgument &arg) {
