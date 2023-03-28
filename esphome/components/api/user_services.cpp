@@ -18,6 +18,9 @@ template<> std::vector<bool> get_execute_arg_value<std::vector<bool>>(const Exec
 template<> std::vector<int32_t> get_execute_arg_value<std::vector<int32_t>>(const ExecuteServiceArgument &arg) {
   return arg.int_array;
 }
+template<> std::vector<long> get_execute_arg_value<std::vector<long>>(const ExecuteServiceArgument &arg) {
+  return arg.int_array;
+}
 template<> std::vector<float> get_execute_arg_value<std::vector<float>>(const ExecuteServiceArgument &arg) {
   return arg.float_array;
 }
