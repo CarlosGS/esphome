@@ -29,18 +29,6 @@ void ESP32Camera::setup() {
 
   /* initialize camera parameters */
   this->update_camera_parameters();
-
-  /* initialize RTOS */
-  this->framebuffer_get_queue_ = xQueueCreate(1, sizeof(camera_fb_t *));
-  this->framebuffer_return_queue_ = xQueueCreate(1, sizeof(camera_fb_t *));
-  xTaskCreatePinnedToCore(&ESP32Camera::framebuffer_task,
-                          "framebuffer_task",  // name
-                          1024,                // stack size
-                          nullptr,             // task pv params
-                          0,                   // priority
-                          nullptr,             // handle
-                          1                    // core
-  );
 }
 
 void ESP32Camera::dump_config() {
@@ -157,7 +145,7 @@ void ESP32Camera::loop() {
   if (this->can_return_image_()) {
     // return image
     auto *fb = this->current_image_->get_raw_buffer();
-    xQueueSend(this->framebuffer_return_queue_, &fb, portMAX_DELAY);
+    esp_camera_fb_return(fb);
     this->current_image_.reset();
   }
 
@@ -179,16 +167,11 @@ void ESP32Camera::loop() {
     return;
 
   // request new image
-  camera_fb_t *fb;
-  if (xQueueReceive(this->framebuffer_get_queue_, &fb, 0L) != pdTRUE) {
-    // no frame ready
-    ESP_LOGVV(TAG, "No frame ready");
-    return;
-  }
+  camera_fb_t *fb = esp_camera_fb_get();
 
   if (fb == nullptr) {
     ESP_LOGW(TAG, "Got invalid frame from camera!");
-    xQueueSend(this->framebuffer_return_queue_, &fb, portMAX_DELAY);
+    esp_camera_fb_return(fb);
     return;
   }
   this->current_image_ = std::make_shared<CameraImage>(fb, this->single_requesters_ | this->stream_requesters_);
@@ -380,15 +363,6 @@ void ESP32Camera::update_camera_parameters() {
 /* ---------------- Internal methods ---------------- */
 bool ESP32Camera::has_requested_image_() const { return this->single_requesters_ || this->stream_requesters_; }
 bool ESP32Camera::can_return_image_() const { return this->current_image_.use_count() == 1; }
-void ESP32Camera::framebuffer_task(void *pv) {
-  while (true) {
-    camera_fb_t *framebuffer = esp_camera_fb_get();
-    xQueueSend(global_esp32_camera->framebuffer_get_queue_, &framebuffer, portMAX_DELAY);
-    // return is no-op for config with 1 fb
-    xQueueReceive(global_esp32_camera->framebuffer_return_queue_, &framebuffer, portMAX_DELAY);
-    esp_camera_fb_return(framebuffer);
-  }
-}
 
 ESP32Camera *global_esp32_camera;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
