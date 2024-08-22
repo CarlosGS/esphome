@@ -59,8 +59,9 @@ void GPS::loop() {
       }
       if (tiny_gps_.satellites.isUpdated()) {
         this->satellites_ = tiny_gps_.satellites.value();
-        ESP_LOGD(TAG, "Satellites:");
-        ESP_LOGD(TAG, "  %d", this->satellites_);
+        ESP_LOGD(TAG, "Satellites:  %d", this->satellites_);
+        ESP_LOGD(TAG, "Date: "%" PRIu32, tiny_gps_.date.value());
+        ESP_LOGD(TAG, "Time: "%" PRIu32, tiny_gps_.time.value());
       }
 
       for (auto *listener : this->listeners_)
