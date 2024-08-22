@@ -2,6 +2,7 @@
 
 #include "gps.h"
 #include "esphome/core/log.h"
+#include "esphome/core/time.h"
 
 namespace esphome {
 namespace gps {
@@ -33,18 +34,18 @@ void GPS::update() {
 void GPS::loop() {
   while (this->available()) {
     if (this->tiny_gps_.encode(this->read())) {
-      if (tiny_gps.time.isValid() && tiny_gps.date.isValid() && tiny_gps.date.isUpdated() && tiny_gps.date.year() > 2023) {
+      if (tiny_gps_.time.isValid() && tiny_gps_.date.isValid() && tiny_gps_.date.isUpdated() && tiny_gps_.date.year() > 2023) {
         ESPTime val{};
-        val.year = tiny_gps.date.year();
-        val.month = tiny_gps.date.month();
-        val.day_of_month = tiny_gps.date.day();
+        val.year = tiny_gps_.date.year();
+        val.month = tiny_gps_.date.month();
+        val.day_of_month = tiny_gps_.date.day();
         // Set these to valid value for  recalc_timestamp_utc - it's not used for calculation
         val.day_of_week = 1;
         val.day_of_year = 1;
       
-        val.hour = tiny_gps.time.hour();
-        val.minute = tiny_gps.time.minute();
-        val.second = tiny_gps.time.second();
+        val.hour = tiny_gps_.time.hour();
+        val.minute = tiny_gps_.time.minute();
+        val.second = tiny_gps_.time.second();
         val.recalc_timestamp_utc(false);
         uint32_t epoch = val.timestamp;
         struct timeval timev {
