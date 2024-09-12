@@ -2,6 +2,7 @@
 
 #include "gps.h"
 #include "esphome/core/log.h"
+#include "esphome/core/time.h"
 
 namespace esphome {
 namespace gps {
