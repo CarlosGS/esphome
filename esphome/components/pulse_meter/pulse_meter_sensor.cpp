@@ -22,7 +22,7 @@ void PulseMeterSensor::setup() {
   this->last_pin_val_ = this->pin_->digital_read();
 
   // Set the last processed edge to now for the first timeout
-  this->last_processed_edge_us_ = micros();
+  this->last_processed_edge_us_ = millis();
 
   if (this->filter_mode_ == FILTER_EDGE) {
     this->pin_->attach_interrupt(PulseMeterSensor::edge_intr, this, gpio::INTERRUPT_RISING_EDGE);
@@ -62,7 +62,7 @@ void PulseMeterSensor::loop() {
     std::swap(this->set_, this->get_);
   }
 
-  const uint32_t now = micros();
+  const uint32_t now = millis();
 
   // If an edge was peeked, repay the debt
   if (this->peeked_edge_ && this->get_->count_ > 0) {
@@ -96,9 +96,9 @@ void PulseMeterSensor::loop() {
       case MeterState::RUNNING: {
         uint32_t delta_us = this->get_->last_detected_edge_us_ - this->last_processed_edge_us_;
         float pulse_width_us = delta_us / float(this->get_->count_);
-        ESP_LOGV(TAG, "New pulse, delta: %" PRIu32 " µs, count: %" PRIu32 ", width: %.5f µs", delta_us,
+        ESP_LOGV(TAG, "New pulse, delta: %" PRIu32 " ms, count: %" PRIu32 ", width: %.5f ms", delta_us,
                  this->get_->count_, pulse_width_us);
-        this->publish_state((60.0f * 1000000.0f) / pulse_width_us);
+        this->publish_state((60.0f * 1000.0f) / pulse_width_us);
       } break;
     }
 
@@ -142,7 +142,7 @@ void PulseMeterSensor::dump_config() {
 void IRAM_ATTR PulseMeterSensor::edge_intr(PulseMeterSensor *sensor) {
   // This is an interrupt handler - we can't call any virtual method from this method
   // Get the current time before we do anything else so the measurements are consistent
-  const uint32_t now = micros();
+  const uint32_t now = millis();
   auto &state = sensor->edge_state_;
   auto &set = *sensor->set_;
 
@@ -160,7 +160,7 @@ void IRAM_ATTR PulseMeterSensor::edge_intr(PulseMeterSensor *sensor) {
 void IRAM_ATTR PulseMeterSensor::pulse_intr(PulseMeterSensor *sensor) {
   // This is an interrupt handler - we can't call any virtual method from this method
   // Get the current time before we do anything else so the measurements are consistent
-  const uint32_t now = micros();
+  const uint32_t now = millis();
   const bool pin_val = sensor->isr_pin_.digital_read();
   auto &state = sensor->pulse_state_;
   auto &set = *sensor->set_;
